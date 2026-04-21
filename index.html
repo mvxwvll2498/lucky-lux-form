@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Lucky & Lux — Sales Entry</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: #2e2e2e;
+  --border-bright: #444;
+  --text: #f0f0f0;
+  --text-mid: #888;
+  --text-dim: #555;
+  --mm: #2a4a2a;
+  --mm-text: #7dbd7d;
+  --mm-border: #3d6b3d;
+  --or: #4a3a0a;
+  --or-text: #d4a030;
+  --or-border: #6b5212;
+  --lux: #4a2010;
+  --lux-text: #e07040;
+  --lux-border: #6b3018;
+  --accent: #f0f0f0;
+  --accent-dim: #2a2a2a;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --yellow: #eab308;
+  --radius: 8px;
+  --radius-sm: 5px;
+}
+
+body {
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 1.5rem 1rem 4rem;
+}
+
+/* ── Header ── */
+.app-header {
+  max-width: 540px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.app-header h1 {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.app-header h1 small {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-mid);
+  font-weight: 400;
+  margin-top: 1px;
+  letter-spacing: 0.06em;
+}
+.sheet-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--text-mid);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+}
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+}
+.dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot.error { background: var(--red); }
+
+/* ── URL Config panel ── */
+.config-panel {
+  max-width: 540px;
+  margin: 0 auto 1rem;
+  background: var(--surface);
+  border: 0.5px solid var(--border-bright);
+  border-radius: var(--radius);
+  padding: 1rem;
+  display: none;
+}
+.config-panel.open { display: block; }
+.config-panel label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--text-mid);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+.config-panel input {
+  width: 100%;
+  background: var(--bg);
+  border: 0.5px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 8px 10px;
+  outline: none;
+}
+.config-panel input:focus { border-color: var(--blue); }
+.config-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ── Card ── */
+.card {
+  max-width: 540px;
+  margin: 0 auto 1rem;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.card-head {
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-head h2 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+.card-body { padding: 14px; }
+
+/* ── Fields ── */
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.field-grid.triple { grid-template-columns: 1fr 1fr 1fr; }
+.field-full { grid-column: 1 / -1; }
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--text-mid);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+input[type="text"], input[type="date"], input[type="number"], select, textarea {
+  background: var(--surface2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-size: 13px;
+  padding: 9px 11px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--border-bright); }
+select { cursor: pointer; }
+select option { background: var(--surface2); }
+textarea { resize: vertical; min-height: 56px; }
+
+/* ── Items section ── */
+.items-head {
+  display: grid;
+  grid-template-columns: 100px 1fr 54px 82px;
+  gap: 6px;
+  padding: 0 0 8px;
+  border-bottom: 0.5px solid var(--border);
+  margin-bottom: 10px;
+}
+.items-head span {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.items-head span:nth-child(2) { text-align: left; }
+
+.item-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 54px 82px;
+  gap: 6px;
+  margin-bottom: 6px;
+  align-items: center;
+  position: relative;
+}
+.item-row:last-child { margin-bottom: 0; }
+
+/* Frame selector */
+.frame-select {
+  display: flex;
+  gap: 4px;
+}
+.frame-btn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.12s;
+  letter-spacing: 0.04em;
+}
+.frame-btn:hover { border-color: var(--border-bright); color: var(--text); }
+.frame-btn.mm.active  { background: var(--mm);  border-color: var(--mm-border);  color: var(--mm-text); }
+.frame-btn.or.active  { background: var(--or);  border-color: var(--or-border);  color: var(--or-text); }
+.frame-btn.lux.active { background: var(--lux); border-color: var(--lux-border); color: var(--lux-text); }
+
+/* Color select styled by frame */
+.color-wrap select {
+  font-size: 12px;
+  padding: 9px 8px;
+}
+.color-wrap.mm select { border-color: var(--mm-border); background: rgba(45,74,45,0.3); }
+.color-wrap.or select { border-color: var(--or-border); background: rgba(74,58,10,0.3); }
+.color-wrap.lux select { border-color: var(--lux-border); background: rgba(74,32,16,0.3); }
+
+/* qty + price inputs */
+.item-row input[type="number"] {
+  text-align: center;
+  padding: 9px 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  -moz-appearance: textfield;
+}
+.item-row input[type="number"]::-webkit-outer-spin-button,
+.item-row input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* remove row btn */
+.remove-btn {
+  position: absolute;
+  right: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 0.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.item-row:hover .remove-btn { opacity: 1; }
+.remove-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* ── Add row button ── */
+.add-row-btn {
+  width: 100%;
+  padding: 9px;
+  margin-top: 10px;
+  background: transparent;
+  border: 0.5px dashed var(--border-bright);
+  border-radius: var(--radius-sm);
+  color: var(--text-mid);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.add-row-btn:hover { border-color: var(--text-mid); color: var(--text); background: var(--surface2); }
+
+/* ── Totals ── */
+.totals-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 0 0;
+  border-top: 0.5px solid var(--border);
+  margin-top: 10px;
+}
+.total-item {
+  text-align: right;
+}
+.total-item .lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+.total-item .val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+}
+.total-item.net .val { font-size: 20px; color: var(--green); }
+
+/* ── Discount row ── */
+.discount-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ── Submit button ── */
+.submit-wrap {
+  max-width: 540px;
+  margin: 0 auto;
+}
+.submit-btn {
+  width: 100%;
+  padding: 15px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: opacity 0.15s;
+  position: relative;
+}
+.submit-btn:hover { opacity: 0.9; }
+.submit-btn:active { opacity: 0.75; transform: scale(0.99); }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.submit-btn .spinner {
+  display: none;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(0,0,0,0.3);
+  border-top-color: var(--bg);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.submit-btn.loading .spinner { display: block; }
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface);
+  border: 0.5px solid var(--border-bright);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 999;
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--green); }
+.toast.error   { border-color: var(--red); }
+.toast-icon { font-size: 16px; }
+
+/* ── Success overlay ── */
+.success-overlay {
+  display: none;
+  max-width: 540px;
+  margin: 0 auto 1rem;
+  background: var(--surface);
+  border: 0.5px solid var(--green);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+}
+.success-overlay.show { display: block; }
+.success-overlay .order-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 48px;
+  font-weight: 500;
+  color: var(--green);
+  letter-spacing: -0.02em;
+}
+.success-overlay p {
+  color: var(--text-mid);
+  font-size: 13px;
+  margin-top: 6px;
+}
+.new-order-btn {
+  margin-top: 16px;
+  padding: 10px 24px;
+  background: transparent;
+  border: 0.5px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+.new-order-btn:hover { background: var(--surface2); }
+
+/* mobile safe */
+@media (max-width: 400px) {
+  .items-head, .item-row {
+    grid-template-columns: 88px 1fr 44px 72px;
+  }
+  .remove-btn { right: -20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="app-header">
+  <h1>Lucky &amp; Lux
+    <small>SALES ENTRY FORM</small>
+  </h1>
+  <div class="sheet-status" id="statusBtn" onclick="toggleConfig()">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">ตั้งค่า Sheet</span>
+  </div>
+</div>
+
+<!-- Config panel -->
+<div class="config-panel" id="configPanel">
+  <label>Google Apps Script URL</label>
+  <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/YOUR_ID/exec"
+    oninput="saveUrl()" />
+  <div class="config-hint">
+    วิธีได้ URL: Google Sheet → Extensions → Apps Script → วาง code → Deploy → Web App<br>
+    Execute as: <b>Me</b> &nbsp;|&nbsp; Who has access: <b>Anyone</b>
+  </div>
+</div>
+
+<!-- Success state -->
+<div class="success-overlay" id="successOverlay">
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-mid);letter-spacing:0.1em;margin-bottom:8px">ORDER RECORDED</div>
+  <div class="order-num" id="successOrderNum">#—</div>
+  <p id="successMsg">บันทึกลง Google Sheet แล้ว</p>
+  <button class="new-order-btn" onclick="resetForm()">+ Order ใหม่</button>
+</div>
+
+<!-- Form -->
+<div id="mainForm">
+
+<!-- Order info -->
+<div class="card">
+  <div class="card-head">
+    <h2>Order Info</h2>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim)">ORDER #<span id="orderPreview">—</span></span>
+  </div>
+  <div class="card-body">
+    <div class="field-grid">
+      <div class="field">
+        <label>วันที่ / Date</label>
+        <input type="date" id="saleDate" />
+      </div>
+      <div class="field">
+        <label>ชื่อลูกค้า / Customer</label>
+        <input type="text" id="customer" placeholder="ชื่อร้าน หรือชื่อลูกค้า" />
+      </div>
+      <div class="field">
+        <label>ประเภทลูกค้า</label>
+        <select id="cusType">
+          <option value="">— เลือก —</option>
+          <option>ใหม่ | New</option>
+          <option>ประจำ | Regular</option>
+          <option>ขายส่ง | Wholesale</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>ช่องทาง / Channel</label>
+        <select id="channel">
+          <option value="">— เลือก —</option>
+          <option>walk-in</option>
+          <option>online-Shopee</option>
+          <option>online-Line</option>
+          <option>online-Facebook</option>
+          <option>online-IG</option>
+          <option>phone</option>
+          <option>event</option>
+        </select>
+      </div>
+      <div class="field field-full">
+        <label>ใช้สำหรับ / Use Segment</label>
+        <select id="useSegment">
+          <option value="">— เลือก —</option>
+          <option>บ้าน | Home</option>
+          <option>คาเฟ่ | Cafe</option>
+          <option>ออฟฟิศ | Office</option>
+          <option>ขายส่ง | Wholesale</option>
+          <option>โรงแรม | Hotel</option>
+          <option>อื่นๆ | Other</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Items -->
+<div class="card">
+  <div class="card-head">
+    <h2>รายการสินค้า</h2>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim)">1 แถว = 1 สี</span>
+  </div>
+  <div class="card-body">
+    <div class="items-head">
+      <span>Frame</span>
+      <span>สีเบาะ / Color</span>
+      <span>Qty</span>
+      <span>ราคา/ชิ้น ฿</span>
+    </div>
+    <div id="itemsContainer"></div>
+    <button class="add-row-btn" onclick="addItem()">+ เพิ่มสี / รายการ</button>
+    <div class="discount-row">
+      <div class="field">
+        <label>ส่วนลด %</label>
+        <input type="number" id="discountPct" placeholder="0" min="0" max="100" oninput="calcTotals()" />
+      </div>
+      <div class="field">
+        <label>ส่วนลด ฿ (ต่อ order)</label>
+        <input type="number" id="discountThb" placeholder="0" min="0" oninput="calcTotals()" />
+      </div>
+    </div>
+    <div class="totals-row">
+      <div class="total-item">
+        <div class="lbl">SUBTOTAL</div>
+        <div class="val" id="subtotal">฿0</div>
+      </div>
+      <div class="total-item">
+        <div class="lbl">DISCOUNT</div>
+        <div class="val" id="discountDisplay" style="color:var(--yellow)">฿0</div>
+      </div>
+      <div class="total-item net">
+        <div class="lbl">NET TOTAL</div>
+        <div class="val" id="netTotal">฿0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notes -->
+<div class="card">
+  <div class="card-head"><h2>หมายเหตุ / Notes</h2></div>
+  <div class="card-body">
+    <textarea id="notes" placeholder="หมายเหตุเพิ่มเติม เช่น เปลี่ยนสีเบาะ, รอของ, ส่งบ้าน..."></textarea>
+  </div>
+</div>
+
+<!-- Submit -->
+<div class="submit-wrap">
+  <button class="submit-btn" id="submitBtn" onclick="submitForm()">
+    บันทึกลง Google Sheet
+    <div class="spinner"></div>
+  </button>
+</div>
+
+</div><!-- /mainForm -->
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+// ── Product data (sync กับ Products sheet) ──────────────────────────────
+const PRODUCTS = {
+  MM: [
+    {id:"MM-LB", color:"Light Brown (Beige)"},
+    {id:"MM-RP", color:"Rose Pink"},
+    {id:"MM-CG", color:"Cloud Grey"},
+    {id:"MM-GO", color:"เขียว Olive"},
+    {id:"MM-BO", color:"น้ำตาล ส้ม หนังวัว"},
+    {id:"MM-MU", color:"เหลือง Mustard"},
+    {id:"MM-MC", color:"Milk Choc"},
+    {id:"MM-W",  color:"White"},
+    {id:"MM-MT", color:"Milk Tea"},
+  ],
+  OR: [
+    {id:"OR-RM",  color:"แดงมะเมี่ยว"},
+    {id:"OR-SO",  color:"ส้มอิฐ"},
+    {id:"OR-YP",  color:"เหลืองไพร"},
+    {id:"OR-MU",  color:"เหลือง Mustard"},
+    {id:"OR-YM",  color:"Yellow Mellow"},
+    {id:"OR-MP",  color:"ม่วงมะปราง"},
+    {id:"OR-GD",  color:"เขียว หัวเป็ด"},
+    {id:"OR-SM",  color:"ส้ม หินอ่อน"},
+    {id:"OR-FT",  color:"ฟ้าเทอควอยซ์"},
+    {id:"OR-RMH", color:"แดง หินอ่อน"},
+    {id:"OR-CF",  color:"น้ำตาล Coffee"},
+    {id:"OR-TSM", color:"น้ำตาล ส้มหินอ่อน"},
+    {id:"OR-TRM", color:"น้ำตาล แดงหินอ่อน"},
+    {id:"OR-CR",  color:"น้ำตาล Caramel"},
+    {id:"OR-GDM", color:"เขียวเข้ม หินอ่อน"},
+    {id:"OR-GH",  color:"เขียว ขี้ม้า"},
+    {id:"OR-BH",  color:"น้ำตาล ขี้ม้า"},
+    {id:"OR-GO",  color:"เขียว Olive"},
+    {id:"OR-BS",  color:"ฟ้า Blue Sea"},
+    {id:"OR-LB",  color:"Light Brown (Beige)"},
+    {id:"OR-DB",  color:"Deep Brown"},
+    {id:"OR-BM",  color:"Black หินอ่อน"},
+    {id:"OR-GL",  color:"Green Leaf"},
+    {id:"OR-FP",  color:"ชมพูบานเย็น"},
+    {id:"OR-V",   color:"Violet"},
+  ],
+  LUX: [
+    {id:"LUX-SM",  color:"ส้ม หินอ่อน"},
+    {id:"LUX-SS",  color:"ส้มแสด"},
+    {id:"LUX-FT",  color:"ฟ้าเทอควอยซ์"},
+    {id:"LUX-RMH", color:"แดง หินอ่อน"},
+    {id:"LUX-OW",  color:"ขาว Off White"},
+    {id:"LUX-YMH", color:"เหลือง หินอ่อน"},
+    {id:"LUX-MU",  color:"เหลือง Mustard"},
+    {id:"LUX-SOB", color:"ส้มอิฐ ผิวเรียบ"},
+    {id:"LUX-GH",  color:"เขียว ขี้ม้า"},
+    {id:"LUX-GO",  color:"เขียว Olive"},
+    {id:"LUX-B",   color:"Black"},
+    {id:"LUX-CF",  color:"น้ำตาล Coffee"},
+    {id:"LUX-GDM", color:"เขียวเข้ม หินอ่อน"},
+    {id:"LUX-YP",  color:"เหลืองไพร"},
+    {id:"LUX-BS",  color:"ฟ้า Blue Sea"},
+    {id:"LUX-GL",  color:"Green Leaf"},
+  ]
+};
+
+const DEFAULT_PRICE = { MM: 1950, OR: 1950, LUX: 2750 };
+
+// ── State ────────────────────────────────────────────────────────────────
+let itemCount = 0;
+
+// ── Init ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today's date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('saleDate').value = today;
+
+  // Load saved script URL
+  const saved = localStorage.getItem('luckylux_script_url') || '';
+  document.getElementById('scriptUrl').value = saved;
+  updateStatus(saved);
+
+  // Add first item row
+  addItem();
+});
+
+// ── URL config ───────────────────────────────────────────────────────────
+function toggleConfig() {
+  document.getElementById('configPanel').classList.toggle('open');
+}
+function saveUrl() {
+  const url = document.getElementById('scriptUrl').value.trim();
+  localStorage.setItem('luckylux_script_url', url);
+  updateStatus(url);
+}
+function updateStatus(url) {
+  const dot  = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  if (url && url.includes('script.google.com')) {
+    dot.className  = 'dot connected';
+    text.textContent = 'Sheet เชื่อมแล้ว';
+  } else if (url) {
+    dot.className  = 'dot error';
+    text.textContent = 'URL ไม่ถูกต้อง';
+  } else {
+    dot.className  = 'dot';
+    text.textContent = 'ตั้งค่า Sheet';
+  }
+}
+
+// ── Item rows ─────────────────────────────────────────────────────────────
+function addItem(frame = 'OR') {
+  itemCount++;
+  const id = itemCount;
+  const container = document.getElementById('itemsContainer');
+
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.id = `item-${id}`;
+  row.innerHTML = `
+    <div class="frame-select">
+      <button class="frame-btn mm ${frame==='MM'?'active':''}" onclick="setFrame(${id},'MM')">MM</button>
+      <button class="frame-btn or ${frame==='OR'?'active':''}" onclick="setFrame(${id},'OR')">OR</button>
+      <button class="frame-btn lux ${frame==='LUX'?'active':''}" onclick="setFrame(${id},'LUX')">LUX</button>
+    </div>
+    <div class="color-wrap ${frame.toLowerCase()}" id="colorWrap-${id}">
+      <select id="colorSel-${id}" onchange="calcTotals()"></select>
+    </div>
+    <input type="number" id="qty-${id}" value="1" min="1" oninput="calcTotals()" />
+    <input type="number" id="price-${id}" value="${DEFAULT_PRICE[frame]}" min="0" oninput="calcTotals()" />
+    <button class="remove-btn" onclick="removeItem(${id})" title="ลบ">×</button>
+  `;
+  container.appendChild(row);
+  populateColors(id, frame);
+  calcTotals();
+}
+
+function setFrame(id, frame) {
+  // Update buttons
+  const row = document.getElementById(`item-${id}`);
+  row.querySelectorAll('.frame-btn').forEach(b => b.classList.remove('active'));
+  row.querySelector(`.frame-btn.${frame.toLowerCase()}`).classList.add('active');
+
+  // Update color wrap class
+  const wrap = document.getElementById(`colorWrap-${id}`);
+  wrap.className = `color-wrap ${frame.toLowerCase()}`;
+
+  // Update price default
+  const priceInput = document.getElementById(`price-${id}`);
+  priceInput.value = DEFAULT_PRICE[frame];
+
+  populateColors(id, frame);
+  calcTotals();
+}
+
+function populateColors(id, frame) {
+  const sel = document.getElementById(`colorSel-${id}`);
+  const items = PRODUCTS[frame] || [];
+  sel.innerHTML = items.map(p =>
+    `<option value="${p.id}">${p.color}</option>`
+  ).join('');
+}
+
+function removeItem(id) {
+  const el = document.getElementById(`item-${id}`);
+  if (el) el.remove();
+  calcTotals();
+}
+
+function getSelectedFrame(id) {
+  const row = document.getElementById(`item-${id}`);
+  if (!row) return 'OR';
+  const active = row.querySelector('.frame-btn.active');
+  return active ? active.textContent : 'OR';
+}
+
+// ── Totals ────────────────────────────────────────────────────────────────
+function calcTotals() {
+  const rows = document.getElementById('itemsContainer').querySelectorAll('.item-row');
+  let subtotal = 0;
+  rows.forEach(row => {
+    const idMatch = row.id.match(/item-(\d+)/);
+    if (!idMatch) return;
+    const id = idMatch[1];
+    const qty   = parseFloat(document.getElementById(`qty-${id}`)?.value) || 0;
+    const price = parseFloat(document.getElementById(`price-${id}`)?.value) || 0;
+    subtotal += qty * price;
+  });
+
+  const discPct = parseFloat(document.getElementById('discountPct').value) || 0;
+  const discThb = parseFloat(document.getElementById('discountThb').value) || 0;
+  const discAmt = subtotal * (discPct / 100) + discThb;
+  const net = Math.max(0, subtotal - discAmt);
+
+  document.getElementById('subtotal').textContent = '฿' + subtotal.toLocaleString('th-TH');
+  document.getElementById('discountDisplay').textContent = discAmt > 0 ? '-฿' + discAmt.toLocaleString('th-TH') : '฿0';
+  document.getElementById('netTotal').textContent = '฿' + net.toLocaleString('th-TH');
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────
+async function submitForm() {
+  const scriptUrl = localStorage.getItem('luckylux_script_url') || '';
+  if (!scriptUrl || !scriptUrl.includes('script.google.com')) {
+    showToast('กรุณาตั้งค่า Apps Script URL ก่อน', 'error');
+    toggleConfig();
+    return;
+  }
+
+  // Collect items
+  const rows = document.getElementById('itemsContainer').querySelectorAll('.item-row');
+  const items = [];
+  let valid = true;
+
+  rows.forEach(row => {
+    const idMatch = row.id.match(/item-(\d+)/);
+    if (!idMatch) return;
+    const id = idMatch[1];
+    const frame     = getSelectedFrame(id);
+    const productId = document.getElementById(`colorSel-${id}`)?.value || '';
+    const qty       = parseFloat(document.getElementById(`qty-${id}`)?.value) || 0;
+    const price     = parseFloat(document.getElementById(`price-${id}`)?.value) || 0;
+    if (!productId || qty <= 0) { valid = false; return; }
+    items.push({ product_id: productId, frame, qty, unit_price: price });
+  });
+
+  if (!valid || items.length === 0) {
+    showToast('กรุณากรอก Product และ Qty ให้ครบ', 'error');
+    return;
+  }
+
+  const date     = document.getElementById('saleDate').value;
+  const customer = document.getElementById('customer').value.trim();
+  const cusType  = document.getElementById('cusType').value;
+  const channel  = document.getElementById('channel').value;
+  const segment  = document.getElementById('useSegment').value;
+  const notes    = document.getElementById('notes').value.trim();
+  const discPct  = parseFloat(document.getElementById('discountPct').value) || 0;
+  const discThb  = parseFloat(document.getElementById('discountThb').value) || 0;
+
+  if (!date) { showToast('กรุณาเลือกวันที่', 'error'); return; }
+
+  const payload = { date, customer, cus_type: cusType, channel,
+    use_segment: segment, notes, discount_pct: discPct, discount_thb: discThb, items };
+
+  // Send
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.childNodes[0].textContent = 'กำลังบันทึก...';
+
+  try {
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    // no-cors → opaque response, assume success if no error thrown
+    showSuccess(null, items.length);
+
+  } catch (err) {
+    showToast('เชื่อมต่อ Sheet ไม่ได้: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.childNodes[0].textContent = 'บันทึกลง Google Sheet';
+  }
+}
+
+function showSuccess(orderNum, itemCount) {
+  document.getElementById('mainForm').style.display = 'none';
+  const overlay = document.getElementById('successOverlay');
+  overlay.classList.add('show');
+  document.getElementById('successOrderNum').textContent = orderNum ? '#' + orderNum : '✓';
+  document.getElementById('successMsg').textContent =
+    `บันทึก ${itemCount} รายการลง Google Sheet แล้ว`;
+}
+
+function resetForm() {
+  document.getElementById('successOverlay').classList.remove('show');
+  document.getElementById('mainForm').style.display = 'block';
+  document.getElementById('itemsContainer').innerHTML = '';
+  itemCount = 0;
+  document.getElementById('customer').value = '';
+  document.getElementById('cusType').value = '';
+  document.getElementById('channel').value = '';
+  document.getElementById('useSegment').value = '';
+  document.getElementById('notes').value = '';
+  document.getElementById('discountPct').value = '';
+  document.getElementById('discountThb').value = '';
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('saleDate').value = today;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  btn.childNodes[0].textContent = 'บันทึกลง Google Sheet';
+  addItem();
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const toast = document.getElementById('toast');
+  const icon  = document.getElementById('toastIcon');
+  document.getElementById('toastMsg').textContent = msg;
+  icon.textContent = type === 'success' ? '✓' : '✕';
+  toast.className = `toast ${type} show`;
+  setTimeout(() => { toast.className = `toast ${type}`; }, 3500);
+}
+</script>
+</body>
+</html>
