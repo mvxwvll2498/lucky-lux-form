@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>Lucky & Lux — บันทึกยอดขาย</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { color-scheme: light only; }
+
+:root {
+  --bg: #f0ede8;
+  --surface: #ffffff;
+  --surface2: #f7f4f0;
+  --border: #d8d2c8;
+  --border-dark: #b0a898;
+  --text: #1a1510;
+  --text-mid: #6b5f52;
+  --text-dim: #a09080;
+  --mm: #d4edda; --mm-text: #1a5c2e; --mm-border: #7dc898;
+  --or: #fff3cd; --or-text: #7a4f00; --or-border: #f0c040;
+  --lux: #fde8d8; --lux-text: #8c3010; --lux-border: #f0905c;
+  --accent: #1a1510;
+  --green: #1e7e3e; --green-bg: #d4edda;
+  --red: #c0392b; --red-bg: #fde8e6;
+  --swap-bg: #eaf4fb; --swap-border: #5dade2; --swap-text: #1a5276;
+  --yellow-bg: #fff8e1; --yellow-border: #f9a825;
+  --radius: 12px; --radius-sm: 8px;
+}
+
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 1.25rem 1rem 5rem;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.app-header {
+  max-width: 580px; margin: 0 auto 1.25rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.app-header h1 { font-size: 22px; font-weight: 700; line-height: 1.2; color: #1a1510; }
+.app-header h1 small {
+  display: block; font-size: 13px; color: #6b5f52; font-weight: 400;
+  margin-top: 2px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.04em;
+}
+
+.sheet-status {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-mid); cursor: pointer;
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--surface);
+  white-space: nowrap; font-family: 'IBM Plex Mono', monospace;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
+.dot.connected { background: var(--green); box-shadow: 0 0 0 3px rgba(30,126,62,0.2); }
+.dot.loading { background: var(--yellow-border); animation: pulse 1s infinite; }
+.dot.error { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.config-panel {
+  max-width: 580px; margin: 0 auto 1rem;
+  background: var(--surface); border: 1px solid var(--border-dark);
+  border-radius: var(--radius); padding: 1.25rem; display: none;
+}
+.config-panel.open { display: block; }
+.config-panel label {
+  font-size: 13px; font-weight: 600; color: var(--text-mid);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  display: block; margin-bottom: 8px; font-family: 'IBM Plex Mono', monospace;
+}
+.config-row { display: flex; gap: 8px; }
+.config-panel input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 12px; outline: none;
+}
+.config-panel input:focus { border-color: var(--swap-border); }
+.reload-btn {
+  padding: 10px 16px; background: var(--accent); border: none;
+  border-radius: var(--radius-sm); color: #fff;
+  font-family: 'Sarabun', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.reload-btn:hover { opacity: 0.85; }
+.config-hint { font-size: 13px; color: var(--text-dim); margin-top: 8px; line-height: 1.5; }
+.prod-badge {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--surface2); color: var(--text-mid);
+  border: 1px solid var(--border); margin-top: 10px; display: inline-block;
+}
+.prod-badge.loaded { color: var(--green); border-color: var(--mm-border); background: var(--green-bg); }
+
+.tabs {
+  max-width: 580px; margin: 0 auto 1rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+.tab-btn {
+  padding: 14px; border: 1.5px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text-mid);
+  font-family: 'Sarabun', sans-serif; font-size: 17px; font-weight: 600;
+  cursor: pointer; text-align: center; transition: all 0.15s; line-height: 1.3;
+}
+.tab-btn:hover { border-color: var(--border-dark); color: var(--text); }
+.tab-btn.active { border-color: #c67c2a; background: #f5a623; color: #fff; }
+.tab-btn.swap-tab.active { border-color: var(--swap-border); background: var(--swap-bg); color: var(--swap-text); }
+.tab-btn small { display: block; font-size: 12px; font-weight: 400; margin-top: 2px; opacity: 0.8; }
+
+.card {
+  max-width: 580px; margin: 0 auto 1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.card-head {
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface2);
+}
+.card-head h2 {
+  font-size: 15px; font-weight: 700; color: var(--text-mid);
+  letter-spacing: 0.04em; text-transform: uppercase; font-family: 'IBM Plex Mono', monospace;
+}
+.card-head .badge { font-size: 12px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; }
+.card-body { padding: 18px; }
+
+.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-full { grid-column: 1 / -1; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 15px; font-weight: 700; color: var(--text-mid); }
+
+input[type="text"], input[type="date"], input[type="number"], select, textarea {
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-family: 'Sarabun', sans-serif; font-size: 18px;
+  padding: 13px 14px; outline: none; width: 100%;
+  transition: border-color 0.15s; -webkit-appearance: none; line-height: 1.4;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); background: #fff; }
+select { cursor: pointer; }
+textarea { resize: vertical; min-height: 80px; }
+
+.items-head {
+  display: grid; grid-template-columns: 110px 1fr 60px 90px;
+  gap: 8px; padding: 0 0 10px; border-bottom: 1.5px solid var(--border); margin-bottom: 12px;
+}
+.items-head span {
+  font-size: 14px; font-weight: 700; color: var(--text-dim);
+  letter-spacing: 0.04em; text-transform: uppercase; text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.items-head span:nth-child(2) { text-align: left; }
+
+.item-row {
+  display: grid; grid-template-columns: 110px 1fr 60px 90px;
+  gap: 8px; margin-bottom: 10px; align-items: center; position: relative;
+}
+
+.frame-select { display: flex; gap: 5px; }
+.frame-btn {
+  flex: 1; padding: 12px 4px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); background: var(--surface2);
+  color: var(--text-dim); font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.12s;
+}
+.frame-btn:hover { border-color: var(--border-dark); color: var(--text); }
+.frame-btn.mm.active  { background: var(--mm);  border-color: var(--mm-border);  color: var(--mm-text); }
+.frame-btn.or.active  { background: var(--or);  border-color: var(--or-border);  color: var(--or-text); }
+.frame-btn.lux.active { background: var(--lux); border-color: var(--lux-border); color: var(--lux-text); }
+
+.color-wrap select { font-size: 17px; padding: 12px 10px; }
+.color-wrap.mm select  { border-color: var(--mm-border);  background: #f0faf3; }
+.color-wrap.or select  { border-color: var(--or-border);  background: #fffbf0; }
+.color-wrap.lux select { border-color: var(--lux-border); background: #fff5f0; }
+
+.item-row input[type="number"] {
+  text-align: center; padding: 12px 6px; font-size: 18px; font-weight: 600;
+  -moz-appearance: textfield;
+}
+.item-row input[type="number"]::-webkit-outer-spin-button,
+.item-row input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.remove-btn {
+  position: absolute; right: -32px; top: 50%; transform: translateY(-50%);
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--text-dim); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.12s;
+}
+.item-row:hover .remove-btn { opacity: 1; }
+.remove-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-bg); }
+
+.add-row-btn {
+  width: 100%; padding: 13px; margin-top: 12px;
+  background: transparent; border: 2px dashed var(--border-dark);
+  border-radius: var(--radius-sm); color: var(--text-mid);
+  font-family: 'Sarabun', sans-serif; font-size: 17px; font-weight: 600;
+  cursor: pointer; transition: all 0.12s;
+}
+.add-row-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface2); }
+
+.discount-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+
+.totals-row {
+  display: flex; justify-content: flex-end; align-items: center;
+  gap: 24px; padding: 14px 0 0; border-top: 1.5px solid var(--border); margin-top: 14px;
+}
+.total-item { text-align: right; }
+.total-item .lbl { font-size: 12px; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; margin-bottom: 2px; letter-spacing: 0.06em; }
+.total-item .val { font-size: 20px; font-weight: 700; color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+.total-item.net .val { font-size: 28px; color: var(--green); }
+
+.swap-section {
+  background: var(--swap-bg); border: 1.5px solid var(--swap-border);
+  border-radius: var(--radius); padding: 16px 18px; margin-top: 16px;
+}
+.swap-toggle { display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+.swap-toggle input[type="checkbox"] {
+  width: 26px; height: 26px; cursor: pointer; accent-color: var(--swap-border); flex-shrink: 0;
+}
+.swap-toggle-label { font-size: 18px; font-weight: 700; color: var(--swap-text); line-height: 1.3; }
+.swap-toggle-label small { display: block; font-size: 14px; font-weight: 400; color: var(--text-mid); margin-top: 2px; }
+.swap-fields {
+  display: none; flex-direction: column; gap: 12px;
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--swap-border);
+}
+.swap-fields.open { display: flex; }
+.swap-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.swap-note {
+  background: var(--yellow-bg); border: 1px solid var(--yellow-border);
+  border-radius: var(--radius-sm); padding: 10px 14px; font-size: 15px;
+  color: #5d4037; line-height: 1.5;
+}
+
+.submit-wrap { max-width: 580px; margin: 0 auto; }
+.submit-btn {
+  width: 100%; padding: 18px; background: #f5a623;
+  color: #fff; border: none; border-radius: var(--radius);
+  font-family: 'Sarabun', sans-serif; font-size: 20px; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s; position: relative;
+}
+.submit-btn:hover { opacity: 0.88; }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.submit-btn .spinner {
+  display: none; width: 20px; height: 20px;
+  border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff;
+  border-radius: 50%; animation: spin 0.6s linear infinite;
+  position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+}
+.submit-btn.loading .spinner { display: block; }
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+#swapForm { display: none; }
+#swapForm .card-head { background: var(--swap-bg); }
+#swapForm .card-head h2 { color: var(--swap-text); }
+.swap-submit-btn {
+  width: 100%; padding: 18px; background: var(--swap-border);
+  color: #fff; border: none; border-radius: var(--radius);
+  font-family: 'Sarabun', sans-serif; font-size: 20px; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s; position: relative;
+}
+.swap-submit-btn:hover { opacity: 0.88; }
+.swap-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.swap-submit-btn .spinner {
+  display: none; width: 20px; height: 20px;
+  border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff;
+  border-radius: 50%; animation: spin 0.6s linear infinite;
+  position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+}
+.swap-submit-btn.loading .spinner { display: block; }
+
+.success-overlay {
+  display: none; max-width: 580px; margin: 0 auto 1rem;
+  background: var(--surface); border: 2px solid var(--green);
+  border-radius: var(--radius); padding: 2rem; text-align: center;
+}
+.success-overlay.show { display: block; }
+.success-icon { font-size: 56px; margin-bottom: 12px; }
+.success-title { font-size: 22px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+.success-msg { font-size: 18px; color: var(--text-mid); }
+.new-order-btn {
+  margin-top: 20px; padding: 14px 32px;
+  background: var(--surface2); border: 1.5px solid var(--border-dark);
+  border-radius: var(--radius); color: var(--text);
+  font-family: 'Sarabun', sans-serif; font-size: 18px; font-weight: 600; cursor: pointer;
+}
+.new-order-btn:hover { background: var(--border); }
+
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--surface); border: 1.5px solid var(--border-dark);
+  border-radius: var(--radius); padding: 16px 24px; font-size: 17px; font-weight: 500;
+  display: flex; align-items: center; gap: 12px;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 999; box-shadow: 0 8px 32px rgba(0,0,0,0.12); max-width: 90vw;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--green); }
+.toast.error   { border-color: var(--red); }
+.toast-icon { font-size: 22px; }
+
+@media (max-width: 420px) {
+  .items-head, .item-row { grid-template-columns: 95px 1fr 50px 78px; }
+  .remove-btn { right: -28px; }
+  .field-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>Lucky &amp; Lux <small>บันทึกยอดขาย</small></h1>
+  <div class="sheet-status" id="statusBtn" onclick="toggleConfig()">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">ตั้งค่า</span>
+  </div>
+</div>
+
+<div class="config-panel" id="configPanel">
+  <label>Apps Script URL</label>
+  <div class="config-row">
+    <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." oninput="saveUrl()" />
+    <button class="reload-btn" onclick="loadProducts()">โหลด</button>
+  </div>
+  <div id="prodBadge"></div>
+  <div class="config-hint">วาง URL แล้วกด "โหลด" — สีเบาะจะดึงจาก Sheet อัตโนมัติ</div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabSale" onclick="switchTab('sale')">
+    🛒 บันทึกขาย <small>Sale Transaction</small>
+  </button>
+  <button class="tab-btn swap-tab" id="tabSwap" onclick="switchTab('swap')">
+    🔄 สลับเบาะ <small>Cushion Swap</small>
+  </button>
+</div>
+
+<div class="success-overlay" id="successOverlay">
+  <div class="success-icon">✅</div>
+  <div class="success-title" id="successTitle">บันทึกสำเร็จ!</div>
+  <div class="success-msg" id="successMsg"></div>
+  <button class="new-order-btn" onclick="resetForm()">+ บันทึก Order ใหม่</button>
+</div>
+
+<!-- ═══ SALE FORM ═══ -->
+<div id="saleForm">
+  <div class="card">
+    <div class="card-head"><h2>ข้อมูล Order</h2></div>
+    <div class="card-body">
+      <div class="field-grid">
+        <div class="field"><label>วันที่ขาย</label><input type="date" id="saleDate" /></div>
+        <div class="field"><label>ชื่อลูกค้า</label><input type="text" id="customer" placeholder="ชื่อร้าน / ลูกค้า" /></div>
+        <div class="field">
+          <label>ประเภทลูกค้า</label>
+          <select id="cusType">
+            <option value="">— เลือก —</option>
+            <option>ใหม่ | New</option>
+            <option>ประจำ | Regular</option>
+            <option>ขายส่ง | Wholesale</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>ช่องทาง</label>
+          <select id="channel">
+            <option value="">— เลือก —</option>
+            <option>walk-in</option>
+            <option>online-Shopee</option>
+            <option>online-Line</option>
+            <option>online-Facebook</option>
+            <option>online-IG</option>
+            <option>phone</option>
+            <option>event</option>
+          </select>
+        </div>
+        <div class="field field-full">
+          <label>ใช้สำหรับ</label>
+          <select id="useSegment">
+            <option value="">— เลือก —</option>
+            <option>บ้าน | Home</option>
+            <option>คาเฟ่ | Cafe</option>
+            <option>ออฟฟิศ | Office</option>
+            <option>ขายส่ง | Wholesale</option>
+            <option>โรงแรม | Hotel</option>
+            <option>อื่นๆ | Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>รายการสินค้า</h2><span class="badge">1 แถว = 1 สี</span></div>
+    <div class="card-body">
+      <div class="items-head">
+        <span>Frame</span><span>สีเบาะ</span><span>Qty</span><span>ราคา/ชิ้น</span>
+      </div>
+      <div id="itemsContainer"></div>
+      <button class="add-row-btn" onclick="addItem()">+ เพิ่มสี / รายการ</button>
+
+      <div class="swap-section">
+        <label class="swap-toggle">
+          <input type="checkbox" id="swapToggle" onchange="toggleSwapFields()" />
+          <div class="swap-toggle-label">
+            มีการสลับสีเบาะ
+            <small>ติ๊กถ้าต้องถอดเบาะสีหนึ่งออกเพื่อหุ้มสีที่ลูกค้าต้องการ</small>
+          </div>
+        </label>
+        <div class="swap-fields" id="swapFields">
+          <div class="swap-note">สีที่ <strong>ถอดออก</strong> จะบันทึก OUT ใน Stock Ledger อัตโนมัติ</div>
+          <div class="swap-row">
+            <div class="field">
+              <label>สีที่ถอดออก (OUT)</label>
+              <select id="swapOutSku"><option value="">— เลือก SKU —</option></select>
+            </div>
+            <div class="field">
+              <label>จำนวนที่ถอด</label>
+              <input type="number" id="swapOutQty" value="1" min="1" />
+            </div>
+          </div>
+          <div class="field">
+            <label>หมายเหตุ</label>
+            <input type="text" id="swapNote" placeholder="เช่น ลูกค้าขอ MU แต่หมด เลยถอด GO มาหุ้ม" />
+          </div>
+        </div>
+      </div>
+
+      <div class="discount-row">
+        <div class="field"><label>ส่วนลด %</label><input type="number" id="discountPct" placeholder="0" min="0" max="100" oninput="calcTotals()" /></div>
+        <div class="field"><label>ส่วนลด ฿</label><input type="number" id="discountThb" placeholder="0" min="0" oninput="calcTotals()" /></div>
+      </div>
+      <div class="totals-row">
+        <div class="total-item"><div class="lbl">SUBTOTAL</div><div class="val" id="subtotal">฿0</div></div>
+        <div class="total-item"><div class="lbl">DISCOUNT</div><div class="val" id="discountDisplay" style="color:var(--yellow-border)">฿0</div></div>
+        <div class="total-item net"><div class="lbl">NET TOTAL</div><div class="val" id="netTotal">฿0</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>หมายเหตุ</h2></div>
+    <div class="card-body"><textarea id="notes" placeholder="หมายเหตุเพิ่มเติม..."></textarea></div>
+  </div>
+
+  <div class="submit-wrap" style="margin-bottom:1rem">
+    <button class="submit-btn" id="submitBtn" onclick="submitSale()">
+      บันทึกลง Google Sheet <div class="spinner"></div>
+    </button>
+  </div>
+</div>
+
+<!-- ═══ SWAP FORM ═══ -->
+<div id="swapForm">
+  <div class="card">
+    <div class="card-head"><h2>🔄 สลับเบาะ (ไม่มีการขาย)</h2></div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
+      <div class="swap-note">บันทึก IN/OUT เข้า Stock Ledger อัตโนมัติ — ไม่มีการบันทึก Sales</div>
+      <div class="field"><label>วันที่</label><input type="date" id="swapDate" /></div>
+      <div class="field"><label>ชื่อลูกค้า / Order อ้างอิง</label><input type="text" id="swapCustomer" placeholder="เช่น คุณแนน หรือ Order #12" /></div>
+      <div class="swap-row">
+        <div class="field"><label>สีที่ถอดออก — OUT</label><select id="swapOnlyOut"><option value="">— เลือก SKU —</option></select></div>
+        <div class="field"><label>จำนวน</label><input type="number" id="swapOnlyOutQty" value="1" min="1" /></div>
+      </div>
+      <div class="swap-row">
+        <div class="field"><label>สีที่ใส่เข้า — IN</label><select id="swapOnlyIn"><option value="">— เลือก SKU —</option></select></div>
+        <div class="field"><label>จำนวน</label><input type="number" id="swapOnlyInQty" value="1" min="1" /></div>
+      </div>
+      <div class="field"><label>หมายเหตุ</label><input type="text" id="swapOnlyNote" placeholder="เหตุผลการสลับ..." /></div>
+    </div>
+  </div>
+  <div class="submit-wrap">
+    <button class="swap-submit-btn" id="swapSubmitBtn" onclick="submitSwap()">
+      บันทึกการสลับเบาะ <div class="spinner"></div>
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+let PRODUCTS = { MM:[], OR:[], LUX:[] };
+let itemCount = 0;
+const DEFAULT_PRICE = { MM:1950, OR:1950, LUX:2750 };
+let currentTab = 'sale';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('saleDate').value = today;
+  document.getElementById('swapDate').value = today;
+  const saved = localStorage.getItem('luckylux_script_url') || '';
+  document.getElementById('scriptUrl').value = saved;
+  if (saved && saved.includes('script.google.com')) loadProducts();
+  else { updateStatus('unconfigured'); addItem(); }
+});
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('saleForm').style.display = tab==='sale' ? 'block' : 'none';
+  document.getElementById('swapForm').style.display = tab==='swap' ? 'block' : 'none';
+  document.getElementById('successOverlay').classList.remove('show');
+  document.getElementById('tabSale').classList.toggle('active', tab==='sale');
+  document.getElementById('tabSwap').classList.toggle('active', tab==='swap');
+}
+
+function toggleConfig() { document.getElementById('configPanel').classList.toggle('open'); }
+function saveUrl() { localStorage.setItem('luckylux_script_url', document.getElementById('scriptUrl').value.trim()); }
+
+function updateStatus(state, count) {
+  const dot=document.getElementById('statusDot'), text=document.getElementById('statusText'), badge=document.getElementById('prodBadge');
+  if (state==='loading') { dot.className='dot loading'; text.textContent='กำลังโหลด...'; badge.innerHTML=''; }
+  else if (state==='connected') {
+    dot.className='dot connected'; text.textContent='เชื่อมแล้ว';
+    const t=(count.MM||0)+(count.OR||0)+(count.LUX||0);
+    badge.innerHTML=`<span class="prod-badge loaded">MM:${count.MM} OR:${count.OR} LUX:${count.LUX} — ${t} สี</span>`;
+  } else if (state==='error') { dot.className='dot error'; text.textContent='โหลดไม่ได้'; badge.innerHTML='<span class="prod-badge" style="color:var(--red)">ตรวจสอบ URL</span>'; }
+  else { dot.className='dot'; text.textContent='ตั้งค่า'; badge.innerHTML=''; }
+}
+
+async function loadProducts() {
+  const url = document.getElementById('scriptUrl').value.trim();
+  localStorage.setItem('luckylux_script_url', url);
+  if (!url || !url.includes('script.google.com')) { updateStatus('error'); showToast('URL ไม่ถูกต้อง','error'); return; }
+  updateStatus('loading');
+  try {
+    const res = await fetch(url, { method:'GET', mode:'cors' });
+    const data = await res.json();
+    if (data.success && data.products) {
+      PRODUCTS = data.products;
+      updateStatus('connected', { MM:PRODUCTS.MM.length, OR:PRODUCTS.OR.length, LUX:PRODUCTS.LUX.length });
+      document.getElementById('itemsContainer').innerHTML=''; itemCount=0;
+      addItem('OR'); populateSwapSelects();
+      showToast(`โหลดสำเร็จ — ${PRODUCTS.MM.length+PRODUCTS.OR.length+PRODUCTS.LUX.length} สี`, 'success');
+      document.getElementById('configPanel').classList.remove('open');
+    } else throw new Error('invalid');
+  } catch(e) {
+    updateStatus('error'); showToast('โหลดไม่ได้ — ตรวจสอบ URL','error');
+    if (itemCount===0) addItem('OR');
+  }
+}
+
+function populateSwapSelects() {
+  const all = [...PRODUCTS.MM,...PRODUCTS.OR,...PRODUCTS.LUX];
+  const opts = '<option value="">— เลือก SKU —</option>' + all.map(p=>`<option value="${p.id}">${p.id} — ${p.color}</option>`).join('');
+  ['swapOutSku','swapOnlyOut','swapOnlyIn'].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML=opts; });
+}
+
+function addItem(frame='OR') {
+  itemCount++;
+  const id=itemCount;
+  const row=document.createElement('div');
+  row.className='item-row'; row.id=`item-${id}`;
+  const opts=buildColorOptions(frame), defSell=getDefaultSell(frame);
+  row.innerHTML=`
+    <div class="frame-select">
+      <button class="frame-btn mm ${frame==='MM'?'active':''}" onclick="setFrame(${id},'MM')">MM</button>
+      <button class="frame-btn or ${frame==='OR'?'active':''}" onclick="setFrame(${id},'OR')">OR</button>
+      <button class="frame-btn lux ${frame==='LUX'?'active':''}" onclick="setFrame(${id},'LUX')">LUX</button>
+    </div>
+    <div class="color-wrap ${frame.toLowerCase()}" id="colorWrap-${id}">
+      <select id="colorSel-${id}" onchange="onColorChange(${id})">${opts}</select>
+    </div>
+    <input type="number" id="qty-${id}" value="1" min="1" oninput="calcTotals()" />
+    <input type="number" id="price-${id}" value="${defSell}" min="0" oninput="calcTotals()" />
+    <button class="remove-btn" onclick="removeItem(${id})">×</button>`;
+  document.getElementById('itemsContainer').appendChild(row);
+  calcTotals();
+}
+
+function buildColorOptions(frame) {
+  const list=PRODUCTS[frame]||[];
+  return list.length ? list.map(p=>`<option value="${p.id}" data-sell="${p.sell}">${p.color}</option>`).join('') : '<option value="">— โหลดสินค้าก่อน —</option>';
+}
+function getDefaultSell(frame) {
+  const list=PRODUCTS[frame]||[];
+  return (list.length && list[0].sell) ? list[0].sell : DEFAULT_PRICE[frame]||1950;
+}
+function onColorChange(id) {
+  const sel=document.getElementById(`colorSel-${id}`);
+  const sell=sel.options[sel.selectedIndex]?.dataset?.sell;
+  if (sell && sell>0) document.getElementById(`price-${id}`).value=sell;
+  calcTotals();
+}
+function setFrame(id, frame) {
+  const row=document.getElementById(`item-${id}`);
+  row.querySelectorAll('.frame-btn').forEach(b=>b.classList.remove('active'));
+  row.querySelector(`.frame-btn.${frame.toLowerCase()}`).classList.add('active');
+  document.getElementById(`colorWrap-${id}`).className=`color-wrap ${frame.toLowerCase()}`;
+  document.getElementById(`colorSel-${id}`).innerHTML=buildColorOptions(frame);
+  document.getElementById(`price-${id}`).value=getDefaultSell(frame);
+  calcTotals();
+}
+function removeItem(id) { document.getElementById(`item-${id}`)?.remove(); calcTotals(); }
+function getSelectedFrame(id) { return document.getElementById(`item-${id}`)?.querySelector('.frame-btn.active')?.textContent||'OR'; }
+
+function toggleSwapFields() {
+  document.getElementById('swapFields').classList.toggle('open', document.getElementById('swapToggle').checked);
+}
+
+function calcTotals() {
+  let sub=0;
+  document.querySelectorAll('.item-row').forEach(row => {
+    const m=row.id.match(/item-(\d+)/); if(!m) return;
+    const id=m[1];
+    sub += (parseFloat(document.getElementById(`qty-${id}`)?.value)||0) * (parseFloat(document.getElementById(`price-${id}`)?.value)||0);
+  });
+  const dp=parseFloat(document.getElementById('discountPct').value)||0;
+  const dt=parseFloat(document.getElementById('discountThb').value)||0;
+  const disc=sub*(dp/100)+dt, net=Math.max(0,sub-disc);
+  document.getElementById('subtotal').textContent='฿'+Math.round(sub).toLocaleString('th-TH');
+  document.getElementById('discountDisplay').textContent=disc>0?'-฿'+Math.round(disc).toLocaleString('th-TH'):'฿0';
+  document.getElementById('netTotal').textContent='฿'+Math.round(net).toLocaleString('th-TH');
+}
+
+async function submitSale() {
+  const url=localStorage.getItem('luckylux_script_url')||'';
+  if (!url.includes('script.google.com')) { showToast('กรุณาตั้งค่า URL ก่อน','error'); toggleConfig(); return; }
+  const items=[];
+  let valid=true;
+  document.querySelectorAll('.item-row').forEach(row => {
+    const m=row.id.match(/item-(\d+)/); if(!m) return;
+    const id=m[1], pid=document.getElementById(`colorSel-${id}`)?.value||'';
+    const qty=parseFloat(document.getElementById(`qty-${id}`)?.value)||0;
+    const price=parseFloat(document.getElementById(`price-${id}`)?.value)||0;
+    if (!pid||qty<=0) { valid=false; return; }
+    items.push({ product_id:pid, frame:getSelectedFrame(id), qty, unit_price:price });
+  });
+  if (!valid||!items.length) { showToast('กรุณาเลือกสินค้าให้ครบ','error'); return; }
+  if (!document.getElementById('saleDate').value) { showToast('กรุณาเลือกวันที่','error'); return; }
+  const hasSwap=document.getElementById('swapToggle').checked;
+  const swapOut=hasSwap ? document.getElementById('swapOutSku').value : '';
+  const payload={
+    date:document.getElementById('saleDate').value,
+    customer:document.getElementById('customer').value.trim(),
+    cus_type:document.getElementById('cusType').value,
+    channel:document.getElementById('channel').value,
+    use_segment:document.getElementById('useSegment').value,
+    notes:document.getElementById('notes').value.trim(),
+    discount_pct:parseFloat(document.getElementById('discountPct').value)||0,
+    discount_thb:parseFloat(document.getElementById('discountThb').value)||0,
+    items,
+    swap: hasSwap&&swapOut ? { out_sku:swapOut, out_qty:parseFloat(document.getElementById('swapOutQty').value)||1, note:document.getElementById('swapNote').value } : null
+  };
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.classList.add('loading'); btn.childNodes[0].textContent='กำลังบันทึก...';
+  try {
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    document.getElementById('saleForm').style.display='none';
+    document.getElementById('successOverlay').classList.add('show');
+    document.getElementById('successTitle').textContent='บันทึกสำเร็จ!';
+    document.getElementById('successMsg').textContent=`${items.length} รายการ${hasSwap&&swapOut?' + บันทึกสลับเบาะ':''} เข้า Google Sheet แล้ว`;
+  } catch(e) {
+    showToast('เชื่อมต่อไม่ได้','error');
+    btn.disabled=false; btn.classList.remove('loading'); btn.childNodes[0].textContent='บันทึกลง Google Sheet';
+  }
+}
+
+async function submitSwap() {
+  const url=localStorage.getItem('luckylux_script_url')||'';
+  if (!url.includes('script.google.com')) { showToast('กรุณาตั้งค่า URL ก่อน','error'); toggleConfig(); return; }
+  const outSku=document.getElementById('swapOnlyOut').value, inSku=document.getElementById('swapOnlyIn').value;
+  if (!outSku||!inSku) { showToast('กรุณาเลือกสีที่ถอดและสีที่ใส่','error'); return; }
+  const payload={
+    type:'swap_only',
+    date:document.getElementById('swapDate').value,
+    customer:document.getElementById('swapCustomer').value.trim(),
+    swap:{ out_sku:outSku, out_qty:parseFloat(document.getElementById('swapOnlyOutQty').value)||1, in_sku:inSku, in_qty:parseFloat(document.getElementById('swapOnlyInQty').value)||1, note:document.getElementById('swapOnlyNote').value.trim() }
+  };
+  const btn=document.getElementById('swapSubmitBtn');
+  btn.disabled=true; btn.classList.add('loading'); btn.childNodes[0].textContent='กำลังบันทึก...';
+  try {
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    document.getElementById('swapForm').style.display='none';
+    document.getElementById('successOverlay').classList.add('show');
+    document.getElementById('successTitle').textContent='บันทึกสลับเบาะสำเร็จ!';
+    document.getElementById('successMsg').textContent=`OUT: ${outSku}  →  IN: ${inSku} เข้า Stock Ledger แล้ว`;
+  } catch(e) {
+    showToast('เชื่อมต่อไม่ได้','error');
+    btn.disabled=false; btn.classList.remove('loading'); btn.childNodes[0].textContent='บันทึกการสลับเบาะ';
+  }
+}
+
+function resetForm() {
+  document.getElementById('successOverlay').classList.remove('show');
+  const today=new Date().toISOString().split('T')[0];
+  if (currentTab==='sale') {
+    document.getElementById('saleForm').style.display='block';
+    document.getElementById('itemsContainer').innerHTML=''; itemCount=0;
+    ['customer','discountPct','discountThb','notes'].forEach(id=>document.getElementById(id).value='');
+    ['cusType','channel','useSegment'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('swapToggle').checked=false;
+    document.getElementById('swapFields').classList.remove('open');
+    document.getElementById('saleDate').value=today;
+    const btn=document.getElementById('submitBtn');
+    btn.disabled=false; btn.classList.remove('loading'); btn.childNodes[0].textContent='บันทึกลง Google Sheet';
+    addItem('OR');
+  } else {
+    document.getElementById('swapForm').style.display='block';
+    ['swapCustomer','swapOnlyNote'].forEach(id=>document.getElementById(id).value='');
+    ['swapOnlyOut','swapOnlyIn'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('swapDate').value=today;
+    const btn=document.getElementById('swapSubmitBtn');
+    btn.disabled=false; btn.classList.remove('loading'); btn.childNodes[0].textContent='บันทึกการสลับเบาะ';
+  }
+}
+
+function showToast(msg,type='success') {
+  const toast=document.getElementById('toast');
+  document.getElementById('toastIcon').textContent=type==='success'?'✓':'✕';
+  document.getElementById('toastMsg').textContent=msg;
+  toast.className=`toast ${type} show`;
+  setTimeout(()=>toast.className=`toast ${type}`,3500);
+}
+</script>
+</body>
+</html>
